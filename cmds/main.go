@@ -1,25 +1,44 @@
 package main
 
 import (
+	"context"
 	"go.dfds.cloud/bootstrap"
+	"go.dfds.cloud/orchestrator"
+	"go.dfds.cloud/ssu-k8s/core/logging"
+	"go.dfds.cloud/ssu-k8s/feats/api"
 	"go.uber.org/zap"
 )
 
 func main() {
+	// setup base
 	builder := bootstrap.Builder()
-	builder.EnableLogging(false, "trace")
+	builder.EnableLogging(false, "debug")
 	builder.EnableHttpRouter(false)
 	builder.EnableMetrics()
 	builder.EnableOrchestrator("orchestrator")
 	manager := builder.Build()
+	logging.Logger = manager.Logger
+	manager.Orchestrator.Init(logging.Logger)
 
-	manager.Logger.Info("ssu-k8s launched")
+	logging.Logger.Info("ssu-k8s launched")
+
+	// setup feats
+	api.Configure(manager.HttpRouter)
+
+	configPrefix := "SSU_K8S_JOB"
+	manager.Orchestrator.AddJob(configPrefix, orchestrator.NewJob("dummy", func(ctx context.Context) error {
+		logging.Logger.Info("dummy")
+		return nil
+	}), &orchestrator.Schedule{})
+
+	manager.Orchestrator.Run()
+
+	// run
 	<-manager.Context.Done()
-
 	if err := manager.HttpServer.Shutdown(manager.Context); err != nil {
-		manager.Logger.Info("HTTP Server was unable to shut down gracefully", zap.Error(err))
+		logging.Logger.Info("HTTP Server was unable to shut down gracefully", zap.Error(err))
 	}
 
-	manager.Logger.Info("server shutting down")
+	logging.Logger.Info("server shutting down")
 
 }
