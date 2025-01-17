@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/operator/misc"
+	"go.dfds.cloud/ssu-k8s/feats/operator/model"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -43,10 +44,25 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
+	// Reconcile disabled, skip
+	if _, ok := nsObj.Labels[misc.LabelReconcileKey]; ok {
+		if nsObj.Labels[misc.LabelReconcileKey] == "false" {
+			return ctrl.Result{}, nil
+		}
+	}
+
 	fmt.Println("Reconciling Namespace: " + nsObj.Name)
-	fmt.Println("labels:")
-	for k, v := range nsObj.Labels {
-		fmt.Printf("  %s: %s\n", k, v)
+	//fmt.Println("labels:")
+	//for k, v := range nsObj.Labels {
+	//	fmt.Printf("  %s: %s\n", k, v)
+	//}
+
+	err = ReconcileCapabilityResources(ctx, r.Client, model.Capability{
+		Name: "",
+		Id:   nsObj.Name,
+	}, nsObj.Name)
+	if err != nil {
+		logging.Logger.Error("Failed to reconcile namespace child resources", zap.Error(err))
 	}
 
 	return ctrl.Result{}, nil

@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sso-group
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: sandbox-emcla-kf9a1-fullaccess
+subjects:
+- kind: ServiceAccount
+  name: sandbox-emcla-kf9a1-vstsuser
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: sandbox-emcla-kf9a1-fullaccess
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: sandbox-emcla-kf9a1

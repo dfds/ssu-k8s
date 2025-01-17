@@ -1,0 +1,164 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.capability.id }}-capability-access
+  namespace: {{ .Values.capability.id }}
+  labels:
+    {{- include "commonLabels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - networking.k8s.io
+  - extensions
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - controllerrevisions
+  - deployments
+  - deployments/scale
+  - replicasets
+  - statefulsets
+  - statefulsets/scale
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - '*'
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  - roles
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - bindings
+  - componentstatuses
+  - configmaps
+  - endpoints
+  - events
+  - limitranges
+  - nodes
+  - nodes/proxy
+  - nodes/status
+  - persistentvolumeclaims
+  - persistentvolumeclaims/status
+  - persistentvolumes
+  - persistentvolumes/status
+  - pods
+  - pods/attach
+  - pods/binding
+  - pods/eviction
+  - pods/exec
+  - pods/log
+  - pods/portforward
+  - pods/proxy
+  - pods/status
+  - podtemplates
+  - replicationcontrollers
+  - replicationcontrollers/scale
+  - replicationcontrollers/status
+  - resourcequotas
+  - resourcequotas/status
+  - secrets
+  - serviceaccounts
+  - services
+  - services/proxy
+  - services/status
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - namespaces/finalize
+  - namespaces/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - traefik.containo.us
+  - traefik.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - '*'
+- apiGroups:
+  - external-secrets.io
+  resources:
+  - ecrauthorizationtokens
+  - externalsecrets
+  - fakes
+  - passwords
+  - secretstores
+  - webhooks
+  verbs:
+  - '*'
+- apiGroups:
+  - druid.apache.org
+  resources:
+  - druids/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - druid.apache.org
+  resources:
+  - druids
+  - druidingestions
+  verbs:
+  - '*'
+- apiGroups:
+  - source.toolkit.fluxcd.io
+  resources:
+  - gitrepositories
+  - helmcharts
+  - helmrepositories
+  - ocirepositories
+  verbs:
+  - '*'
+- apiGroups:
+  - helm.toolkit.fluxcd.io
+  resources:
+  - helmreleases
+  verbs:
+  - '*'
+- apiGroups:
+  - kustomize.toolkit.fluxcd.io
+  resources:
+  - kustomizations
+  verbs:
+  - '*'

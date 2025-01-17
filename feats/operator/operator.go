@@ -6,6 +6,7 @@ import (
 	"go.dfds.cloud/ssu-k8s/feats/operator/controller"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"os"
@@ -20,6 +21,8 @@ var (
 func InitOperator() {
 	ctrl.SetLogger(zapr.NewLogger(logging.Logger))
 	utilruntime.Must(v1.AddToScheme(scheme))
+	utilruntime.Must(rbacv1.AddToScheme(scheme))
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		//Metrics:          metricsServerOptions,
