@@ -52,13 +52,9 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	fmt.Println("Reconciling Namespace: " + nsObj.Name)
-	//fmt.Println("labels:")
-	//for k, v := range nsObj.Labels {
-	//	fmt.Printf("  %s: %s\n", k, v)
-	//}
 
 	err = ReconcileFluxCapabilityResources(ctx, r.Client, model.Capability{
-		Name: "",
+		Name: "", // todo: Lookup Capability in selfservice-api
 		Id:   nsObj.Name,
 	}, nsObj.Name)
 	if err != nil {

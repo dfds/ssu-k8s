@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.dfds.cloud/ssu-k8s/core/config"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/operator/actions"
 	"go.dfds.cloud/ssu-k8s/feats/operator/model"
@@ -56,6 +57,11 @@ func ReconcileFluxCapabilityResources(ctx context.Context, client client.Client,
 		}
 	}
 
+	conf, err := config.LoadConfig()
+	if err != nil {
+		return err
+	}
+
 	if !actions.IsCapabilityResource(secret.Labels) {
 		return nil
 	}
@@ -71,9 +77,9 @@ func ReconcileFluxCapabilityResources(ctx context.Context, client client.Client,
 	// Check if it already exists in AWS SSM
 
 	kubeconfig, err := model.GenerateKubeConfig(model.KubeConfigData{
-		Name:      "replace",
-		CaCert:    "replace",
-		Endpoint:  "replace",
+		Name:      conf.Kubernetes.ClusterName,
+		CaCert:    conf.Kubernetes.ClusterCaCert,
+		Endpoint:  conf.Kubernetes.ClusterEndpoint,
 		Token:     tokenString,
 		Namespace: ns,
 	})

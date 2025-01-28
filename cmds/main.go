@@ -2,19 +2,27 @@ package main
 
 import (
 	"go.dfds.cloud/bootstrap"
+	"go.dfds.cloud/ssu-k8s/core/config"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/api"
 	"go.dfds.cloud/ssu-k8s/feats/jobs"
 	"go.dfds.cloud/ssu-k8s/feats/operator"
 	"go.uber.org/zap"
+	"log"
 )
 
 func main() {
 	// setup base
+	conf, err := config.LoadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	builder := bootstrap.Builder()
-	builder.EnableLogging(false, "debug")
-	builder.EnableHttpRouter(false)
-	builder.EnableMetrics()
+	builder.EnableLogging(conf.Log.Debug, conf.Log.Level)
+	builder.EnableHttpRouter(conf.Http.Enabled)
+	if conf.Metrics.Enabled {
+		builder.EnableMetrics()
+	}
 	builder.EnableOrchestrator("orchestrator")
 	manager := builder.Build()
 	logging.Logger = manager.Logger
