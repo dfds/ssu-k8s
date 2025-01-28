@@ -57,7 +57,7 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	//	fmt.Printf("  %s: %s\n", k, v)
 	//}
 
-	err = ReconcileCapabilityResources(ctx, r.Client, model.Capability{
+	err = ReconcileFluxCapabilityResources(ctx, r.Client, model.Capability{
 		Name: "",
 		Id:   nsObj.Name,
 	}, nsObj.Name)

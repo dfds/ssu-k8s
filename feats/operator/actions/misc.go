@@ -22,3 +22,12 @@ func AddCapabilityLabels(labels map[string]string, capability model.Capability) 
 
 	return labels
 }
+
+func IsCapabilityResource(labels map[string]string) bool {
+	isCapability := false
+	if _, ok := labels[misc.LabelCapabilityKey]; ok {
+		isCapability = true
+	}
+
+	return isCapability
+}
