@@ -76,6 +76,8 @@ func ReconcileFluxCapabilityResources(ctx context.Context, client client.Client,
 
 	// Check if it already exists in AWS SSM
 
+	// gen kubeconfig
+
 	kubeconfig, err := model.GenerateKubeConfig(model.KubeConfigData{
 		Name:      conf.Kubernetes.ClusterName,
 		CaCert:    conf.Kubernetes.ClusterCaCert,

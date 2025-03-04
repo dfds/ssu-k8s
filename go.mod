@@ -3,18 +3,36 @@ module go.dfds.cloud/ssu-k8s
 go 1.23.4
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.35.0
+	github.com/aws/aws-sdk-go-v2/config v1.29.3
+	github.com/aws/aws-sdk-go-v2/service/organizations v1.37.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-logr/zapr v1.3.0
+	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/stretchr/testify v1.9.0
+	go.dfds.cloud/aad-aws-sync v0.0.25
 	go.dfds.cloud/bootstrap v0.0.3
 	go.dfds.cloud/messaging v0.0.1
 	go.dfds.cloud/orchestrator v0.1.7
 	go.uber.org/zap v1.27.0
 	k8s.io/api v0.31.0
 	k8s.io/apimachinery v0.31.0
+	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	sigs.k8s.io/controller-runtime v0.19.4
 )
 
 require (
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.56 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.26 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.30 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.30 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.24.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.12 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.11 // indirect
+	github.com/aws/smithy-go v1.22.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -44,8 +62,7 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kelseyhightower/envconfig v1.4.0 // indirect
-	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -56,6 +73,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
@@ -85,7 +103,6 @@ require (
 	k8s.io/client-go v0.31.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
-	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
