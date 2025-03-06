@@ -5,6 +5,7 @@ import (
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/api"
 	"go.dfds.cloud/ssu-k8s/feats/jobs"
+	"go.dfds.cloud/ssu-k8s/feats/messaging"
 	"go.dfds.cloud/ssu-k8s/feats/operator"
 	"go.uber.org/zap"
 )
@@ -26,7 +27,7 @@ func main() {
 	api.Configure(manager.HttpRouter)
 
 	jobs.Init(manager.Orchestrator)
-	//msgWg := messaging.Init(manager)
+	msgWg := messaging.Init(manager)
 
 	// run
 	go operator.InitOperator()
@@ -35,7 +36,7 @@ func main() {
 		logging.Logger.Info("HTTP Server was unable to shut down gracefully", zap.Error(err))
 	}
 
-	//msgWg.Wait()
+	msgWg.Wait()
 
 	logging.Logger.Info("server shutting down")
 
