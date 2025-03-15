@@ -11,12 +11,12 @@ spec:
       reconcileStrategy: Revision
       sourceRef:
         kind: GitRepository
-        name: capability-data
+        name: ssu-k8s-manifests
         namespace: capability-data
   interval: 1m0s
   install:
     remediation:
-      retries: 3
+      retries: -1
   values:
     capability:
       id: {{index .Vars "capabilityId"}}
