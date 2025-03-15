@@ -2,6 +2,8 @@ package operator
 
 import (
 	"github.com/go-logr/zapr"
+	"go.dfds.cloud/ssu-k8s/core/config"
+	"go.dfds.cloud/ssu-k8s/core/git"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/operator/controller"
 	"go.uber.org/zap"
@@ -9,6 +11,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"log"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
@@ -22,6 +25,22 @@ func InitOperator() {
 	ctrl.SetLogger(zapr.NewLogger(logging.Logger))
 	utilruntime.Must(v1.AddToScheme(scheme))
 	utilruntime.Must(rbacv1.AddToScheme(scheme))
+
+	conf, err := config.LoadConfig()
+	if err != nil {
+		logging.Logger.Fatal("Failed to load config", zap.Error(err))
+	}
+
+	repo, err := git.LoadRepo(git.Config{
+		RemoteRepoUri:     conf.Git.RemoteRepoURI,
+		TemporaryRepoPath: conf.Git.TemporaryRepoPath,
+		GitUsername:       "ssu-k8s",
+		GitEmail:          "ssu-k8s@dfds.cloud",
+		Branch:            conf.Git.Branch,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -50,6 +69,7 @@ func InitOperator() {
 	if err = (&controller.NamespaceReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Repo:   repo,
 	}).SetupWithManager(mgr); err != nil {
 		logging.Logger.Error("unable to create controller", zap.Error(err), zap.String("controller", "namespace"))
 		os.Exit(1)

@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"go.dfds.cloud/ssu-k8s/core/git"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/operator/misc"
 	"go.dfds.cloud/ssu-k8s/feats/operator/model"
@@ -17,6 +18,7 @@ import (
 type NamespaceReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
+	Repo   *git.Repo
 }
 
 // Reconcile TODO: Add reconcile logic for Capability namespaces
@@ -60,7 +62,7 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	err = ReconcileCapabilityResources(ctx, r.Client, model.Capability{
 		Name: "",
 		Id:   nsObj.Name,
-	}, nsObj.Name)
+	}, nsObj.Name, r.Repo)
 	if err != nil {
 		logging.Logger.Error("Failed to reconcile namespace child resources", zap.Error(err))
 	}

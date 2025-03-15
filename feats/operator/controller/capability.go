@@ -2,13 +2,16 @@ package controller
 
 import (
 	"context"
+	"go.dfds.cloud/ssu-k8s/core/config"
+	"go.dfds.cloud/ssu-k8s/core/git"
 	"go.dfds.cloud/ssu-k8s/feats/operator/model"
+	"log"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const capabilityDataNamespace = "capability-data"
 
-func ReconcileCapabilityResources(ctx context.Context, client client.Client, capability model.Capability, ns string) error {
+func ReconcileCapabilityResources(ctx context.Context, client client.Client, capability model.Capability, ns string, repo *git.Repo) error {
 	//_, err := actions.GetObject[*v1.ServiceAccount](ctx, client, types.NamespacedName{
 	//	Namespace: capabilityDataNamespace,
 	//	Name:      capability.Id,
@@ -27,6 +30,19 @@ func ReconcileCapabilityResources(ctx context.Context, client client.Client, cap
 	//		return err
 	//	}
 	//}
+
+	conf, err := config.LoadConfig()
+	if err != nil {
+		return err
+	}
+
+	err = repo.Add(model.Capability{
+		Name: capability.Name,
+		Id:   capability.Id,
+	}, conf.Kubernetes.ClusterName)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return nil
 }

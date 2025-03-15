@@ -8,12 +8,15 @@ import (
 	"go.dfds.cloud/ssu-k8s/feats/operator/model"
 	"go.uber.org/zap"
 	"os"
+	"strings"
+	"sync"
 	"text/template"
 )
 
 type Repo struct {
 	config Config
 	logger *zap.Logger
+	mutex  sync.Mutex
 }
 
 type Config struct {
@@ -27,8 +30,8 @@ type Config struct {
 func LoadRepo(conf Config) (*Repo, error) {
 	logger := logging.Logger.With(zap.String("repo", conf.RemoteRepoUri), zap.String("branch", conf.Branch), zap.String("temporary_repo_path", conf.TemporaryRepoPath))
 
-	if conf.RemoteRepoUri == "" || conf.TemporaryRepoPath == "" {
-		return nil, errors.New("LoadRepo: remote repo URI or temporary repo path is empty")
+	if conf.RemoteRepoUri == "" || conf.TemporaryRepoPath == "" || conf.Branch == "" {
+		return nil, errors.New("LoadRepo: remote repo URI, temporary repo path or branch is empty")
 	}
 
 	if _, err := os.Stat(conf.TemporaryRepoPath); os.IsNotExist(err) {
@@ -36,6 +39,11 @@ func LoadRepo(conf Config) (*Repo, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	repo := &Repo{
+		config: conf,
+		logger: logger,
 	}
 
 	if _, err := os.Stat(fmt.Sprintf("%s/.git", conf.TemporaryRepoPath)); os.IsNotExist(err) {
@@ -53,28 +61,34 @@ func LoadRepo(conf Config) (*Repo, error) {
 		}
 		logger.Debug(resp)
 	} else {
-		resp, err := ExecuteCmd("git", conf.TemporaryRepoPath, []string{"fetch", "origin"})
+		err = repo.Refresh()
 		if err != nil {
-			logger.Debug(resp)
 			return nil, err
 		}
-		logger.Debug(resp)
-
-		resp, err = ExecuteCmd("git", conf.TemporaryRepoPath, []string{"reset", "--hard", fmt.Sprintf("origin/%s", conf.Branch)})
-		if err != nil {
-			logger.Debug(resp)
-			return nil, err
-		}
-		logger.Debug(resp)
 	}
 
-	return &Repo{
-		config: conf,
-		logger: logger,
-	}, nil
+	return repo, nil
 }
 
 func (repo *Repo) List() error {
+	return nil
+}
+
+func (repo *Repo) Refresh() error {
+	logger := repo.logger.With(zap.String("function", "core.git.Repo.Refresh"))
+	resp, err := ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"fetch", "origin"})
+	if err != nil {
+		logger.Debug(resp)
+		return err
+	}
+	logger.Debug(resp)
+
+	resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"reset", "--hard", fmt.Sprintf("origin/%s", repo.config.Branch)})
+	if err != nil {
+		logger.Debug(resp)
+		return err
+	}
+	logger.Debug(resp)
 	return nil
 }
 
@@ -82,6 +96,14 @@ const capabilityBaseFileName = "capability-base.yaml"
 const kustomizationFileName = "kustomization.yaml"
 
 func (repo *Repo) Add(capability model.Capability, clusterName string) error {
+	repo.mutex.Lock()
+	defer repo.mutex.Unlock()
+
+	err := repo.Refresh()
+	if err != nil {
+		return err
+	}
+
 	logger := logging.Logger.With(zap.String("cluster_name", clusterName), zap.String("capabilityId", capability.Id))
 	capabilityManifestPath := capabilityManifestPath(repo.config.TemporaryRepoPath, clusterName, capability)
 
@@ -109,6 +131,8 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 		Labels: labels,
 	}
 
+	repoChangesMade := false
+
 	if checkFileExists(fmt.Sprintf("%s/%s", capabilityManifestPath, kustomizationFileName)) {
 		logger.Debug("Kustomization file already exists, skipping creation")
 	} else {
@@ -122,6 +146,7 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 		if err != nil {
 			return err
 		}
+		repoChangesMade = true
 	}
 
 	if checkFileExists(fmt.Sprintf("%s/%s", capabilityManifestPath, capabilityBaseFileName)) {
@@ -137,31 +162,38 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 		if err != nil {
 			return err
 		}
+		repoChangesMade = true
+
 	}
 
-	resp, err := ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"add", capabilityManifestPath})
-	if err != nil {
+	if repoChangesMade {
+		resp, err := ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"add", capabilityManifestPath})
+		if err != nil {
+			if strings.Contains(resp, "Your branch is up to date") {
+				return nil
+			}
+			logger.Debug(resp)
+			return err
+		}
 		logger.Debug(resp)
-		return err
-	}
-	logger.Debug(resp)
 
-	msg := fmt.Sprintf("Capability changes for '%s'", capability.Id)
-	author := fmt.Sprintf("\"ssu-k8s <ssu-k8s@dfds.cloud>\"")
+		msg := fmt.Sprintf("Capability changes for '%s'", capability.Id)
+		author := fmt.Sprintf("\"ssu-k8s <ssu-k8s@dfds.cloud>\"")
 
-	resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"commit", "-m", msg, "--author", author})
-	if err != nil {
+		resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"commit", "-m", msg, "--author", author})
+		if err != nil {
+			logger.Debug(resp)
+			return err
+		}
 		logger.Debug(resp)
-		return err
-	}
-	logger.Debug(resp)
 
-	resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"push"})
-	if err != nil {
+		resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"push"})
+		if err != nil {
+			logger.Debug(resp)
+			return err
+		}
 		logger.Debug(resp)
-		return err
 	}
-	logger.Debug(resp)
 
 	return nil
 }

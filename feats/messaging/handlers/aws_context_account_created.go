@@ -40,7 +40,7 @@ func AwsContextAccountCreatedHandler(ctx context.Context, event model.HandlerCon
 		return err
 	}
 
-	ns, err := client.CoreV1().Namespaces().Get(ctx, msg.Payload.CapabilityId, v1.GetOptions{})
+	ns, err := client.CoreV1().Namespaces().Get(ctx, msg.Payload.CapabilityRootId, v1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			logger.Debug("Namespace missing, creating it")
