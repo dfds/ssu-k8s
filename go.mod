@@ -11,12 +11,13 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.9.0
 	go.dfds.cloud/aad-aws-sync v0.0.25
-	go.dfds.cloud/bootstrap v0.0.3
+	go.dfds.cloud/bootstrap v0.0.4
 	go.dfds.cloud/messaging v0.0.2
 	go.dfds.cloud/orchestrator v0.1.7
 	go.uber.org/zap v1.27.0
 	k8s.io/api v0.31.0
 	k8s.io/apimachinery v0.31.0
+	k8s.io/client-go v0.31.0
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	sigs.k8s.io/controller-runtime v0.19.4
 )
@@ -100,7 +101,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.31.0 // indirect
-	k8s.io/client-go v0.31.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
