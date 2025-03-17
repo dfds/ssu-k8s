@@ -5,6 +5,7 @@ metadata:
   namespace: capability-data
 spec:
   releaseName: capability-base-{{index .Vars "capabilityId"}}
+  serviceAccount: flux
   chart:
     spec:
       chart: configuration/capability-base
