@@ -13,6 +13,10 @@ type Config struct {
 		RemoteRepoURI     string `json:"remoteRepoUri"`
 		TemporaryRepoPath string `json:"temporaryRepoPath"`
 	}
+	Enable struct {
+		Messaging bool `json:"messaging" default:"true"`
+		Operator  bool `json:"operator" default:"true"`
+	} `json:"enable"`
 }
 
 const APP_CONF_PREFIX = "SSU_K8S"

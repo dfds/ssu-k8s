@@ -27,6 +27,10 @@ app:
       value: ""
     - name: SSU_K8S_GIT_TEMPORARYREPOPATH
       value: ""
+    - name: SSU_K8S_ENABLE_OPERATOR
+      value: "true"
+    - name: SSU_K8S_ENABLE_MESSAGING
+      value: "true"
 
 imagePullSecrets: []
 nameOverride: ""
