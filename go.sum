@@ -198,6 +198,7 @@ go.dfds.cloud/messaging v0.0.1 h1:O8HWOm22rm/qZi4epP+L9IN73NGy/0ZV2+X2G9Dh5mk=
 go.dfds.cloud/messaging v0.0.1/go.mod h1:zPs7WjRG/XY4YEjmjlvpE5dY4enha6awLb25W35953o=
 go.dfds.cloud/messaging v0.0.2 h1:5jT63Q5vAeWNHMOrccOYNeIL+1n5okPxszaQh03K13c=
 go.dfds.cloud/messaging v0.0.2/go.mod h1:zPs7WjRG/XY4YEjmjlvpE5dY4enha6awLb25W35953o=
+go.dfds.cloud/messaging v0.0.3/go.mod h1:zPs7WjRG/XY4YEjmjlvpE5dY4enha6awLb25W35953o=
 go.dfds.cloud/orchestrator v0.1.7 h1:eDObYBMFCR0U+CMpPGiQkvj42oFT2qWKLPmFoVJ0TUg=
 go.dfds.cloud/orchestrator v0.1.7/go.mod h1:RSojgRj3AGpPhgeMbxkGkZbvHt0JVfB7HgWiWx2t3QM=
 go.dfds.cloud/utils v0.1.5 h1:4PrSQN/qALPkKac4TmiCepZd19qx/Vut/WZTF8+i2jk=

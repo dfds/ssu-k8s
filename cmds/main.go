@@ -30,6 +30,9 @@ func main() {
 		logging.Logger.Fatal("failed to load config", zap.Error(err))
 	}
 
+	// setup graceful shutdown
+	// trap Ctrl+C and call cancel on the context
+
 	// setup feats
 	api.Configure(manager.HttpRouter)
 
@@ -42,8 +45,9 @@ func main() {
 
 	// run
 	if conf.Enable.Operator {
-		go operator.InitOperator()
+		go operator.InitOperator(manager.Context)
 	}
+
 	<-manager.Context.Done()
 	if err := manager.HttpServer.Shutdown(manager.Context); err != nil {
 		logging.Logger.Info("HTTP Server was unable to shut down gracefully", zap.Error(err))
@@ -54,5 +58,4 @@ func main() {
 	}
 
 	logging.Logger.Info("server shutting down")
-
 }

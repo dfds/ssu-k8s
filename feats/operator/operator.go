@@ -1,6 +1,7 @@
 package operator
 
 import (
+	"context"
 	"github.com/go-logr/zapr"
 	"go.dfds.cloud/ssu-k8s/core/config"
 	"go.dfds.cloud/ssu-k8s/core/git"
@@ -21,7 +22,7 @@ var (
 	scheme = runtime.NewScheme()
 )
 
-func InitOperator() {
+func InitOperator(ctx context.Context) {
 	ctrl.SetLogger(zapr.NewLogger(logging.Logger))
 	utilruntime.Must(v1.AddToScheme(scheme))
 	utilruntime.Must(rbacv1.AddToScheme(scheme))
@@ -76,7 +77,7 @@ func InitOperator() {
 	}
 
 	logging.Logger.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		logging.Logger.Error("problem running manager", zap.Error(err))
 		os.Exit(1)
 	}
