@@ -15,7 +15,7 @@ FROM golang:1.24-alpine
 
 WORKDIR /app
 
-RUN apk update && apk add git
+RUN apk update && apk add git ssh
 
 RUN adduser \
   --disabled-password \

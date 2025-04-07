@@ -8,6 +8,8 @@ on:
       - 'cmds/**'
       - 'core/**'
       - 'feats/**'
+      - 'static/**'
+      - 'Dockerfile'
       - '.github/workflows/build.yml'
   workflow_dispatch:
     inputs:
