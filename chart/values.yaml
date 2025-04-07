@@ -14,6 +14,7 @@ image:
 app:
   config:
     confSecretRef: ssu-k8s
+    gitSecretRef: ssu-k8s-git
   environment:
     - name: SSU_K8S_LOG_LEVEL
       value: info

@@ -22,6 +22,10 @@ spec:
       labels:
         {{- include "ssu-k8s.selectorLabels" . | nindent 8 }}
     spec:
+      volumes:
+        - name: ssu-k8s-git
+          secret:
+            secretName: {{ .Values.app.config.gitSecretRef }}
       {{- with .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
@@ -43,6 +47,10 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: /app/.ssh/key
+              subPath: key
+              name: ssu-k8s-git
           {{- with .Values.app.environment }}
           env:
             {{- toYaml . | nindent 12}}
