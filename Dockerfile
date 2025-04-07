@@ -13,6 +13,20 @@ RUN go build -o /app/app /app/cmds/main.go
 
 FROM golang:1.24-alpine
 
-COPY --from=build /app/app /app/app
+WORKDIR /app
+
+RUN apk update && apk add git
+
+RUN adduser \
+  --disabled-password \
+  --home /app \
+  --gecos '' app \
+  && chown -R app /app
+USER app
+
+COPY --chown=app:app static/known_hosts /app/.ssh/known_hosts
+COPY --chown=app:app static/gitconfig /app/.ssh/config
+
+COPY --chown=app:app --from=build /app/app /app/app
 
 CMD [ "/app/app" ]
