@@ -11,12 +11,14 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+	"time"
 )
 
 type Repo struct {
-	config Config
-	logger *zap.Logger
-	mutex  sync.Mutex
+	config      Config
+	logger      *zap.Logger
+	mutex       sync.Mutex
+	lastRefresh time.Time
 }
 
 type Config struct {
@@ -42,8 +44,9 @@ func LoadRepo(conf Config) (*Repo, error) {
 	}
 
 	repo := &Repo{
-		config: conf,
-		logger: logger,
+		config:      conf,
+		logger:      logger,
+		lastRefresh: time.Now(),
 	}
 
 	if _, err := os.Stat(fmt.Sprintf("%s/.git", conf.TemporaryRepoPath)); os.IsNotExist(err) {
@@ -61,7 +64,7 @@ func LoadRepo(conf Config) (*Repo, error) {
 		}
 		logger.Debug(resp)
 	} else {
-		err = repo.Refresh()
+		err = repo.Refresh(true)
 		if err != nil {
 			return nil, err
 		}
@@ -74,21 +77,26 @@ func (repo *Repo) List() error {
 	return nil
 }
 
-func (repo *Repo) Refresh() error {
+func (repo *Repo) Refresh(force bool) error {
 	logger := repo.logger.With(zap.String("function", "core.git.Repo.Refresh"))
-	resp, err := ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"fetch", "origin"})
-	if err != nil {
-		logger.Debug(resp)
-		return err
-	}
-	logger.Debug(resp)
 
-	resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"reset", "--hard", fmt.Sprintf("origin/%s", repo.config.Branch)})
-	if err != nil {
+	if force || (time.Now().Unix()-repo.lastRefresh.Unix()) >= 30 {
+		resp, err := ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"fetch", "origin"})
+		if err != nil {
+			logger.Debug(resp)
+			return err
+		}
 		logger.Debug(resp)
-		return err
+
+		resp, err = ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"reset", "--hard", fmt.Sprintf("origin/%s", repo.config.Branch)})
+		if err != nil {
+			logger.Debug(resp)
+			return err
+		}
+		logger.Debug(resp)
+
+		repo.lastRefresh = time.Now()
 	}
-	logger.Debug(resp)
 	return nil
 }
 
@@ -99,7 +107,7 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 	repo.mutex.Lock()
 	defer repo.mutex.Unlock()
 
-	err := repo.Refresh()
+	err := repo.Refresh(false)
 	if err != nil {
 		return err
 	}
@@ -131,7 +139,14 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 		Labels: labels,
 	}
 
-	repoChangesMade := false
+	newModifications := false
+	if !checkFileExists(fmt.Sprintf("%s/%s", capabilityManifestPath, kustomizationFileName)) || !checkFileExists(fmt.Sprintf("%s/%s", capabilityManifestPath, capabilityBaseFileName)) {
+		newModifications = true
+		err := repo.Refresh(true)
+		if err != nil {
+			return err
+		}
+	}
 
 	if checkFileExists(fmt.Sprintf("%s/%s", capabilityManifestPath, kustomizationFileName)) {
 		logger.Debug("Kustomization file already exists, skipping creation")
@@ -146,7 +161,6 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 		if err != nil {
 			return err
 		}
-		repoChangesMade = true
 	}
 
 	if checkFileExists(fmt.Sprintf("%s/%s", capabilityManifestPath, capabilityBaseFileName)) {
@@ -162,11 +176,9 @@ func (repo *Repo) Add(capability model.Capability, clusterName string) error {
 		if err != nil {
 			return err
 		}
-		repoChangesMade = true
-
 	}
 
-	if repoChangesMade {
+	if newModifications {
 		resp, err := ExecuteCmd("git", repo.config.TemporaryRepoPath, []string{"add", capabilityManifestPath})
 		if err != nil {
 			if strings.Contains(resp, "Your branch is up to date") {
