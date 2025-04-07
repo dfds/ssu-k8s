@@ -22,7 +22,7 @@ app:
     - name: SSU_K8S_GIT_BRANCH
       value: main
     - name: SSU__MESSAGING__GROUP_ID
-      value: cloudengineering.ssu-mgmt
+      value: cloudengineering.ssu-k8s
     - name: SSU_K8S_GIT_REMOTEREPOURI
       value: ""
     - name: SSU_K8S_GIT_TEMPORARYREPOPATH
