@@ -9,7 +9,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.dfds.cloud/aad-aws-sync v0.0.25
 	go.dfds.cloud/bootstrap v0.0.4
-	go.dfds.cloud/messaging v0.0.3
+	go.dfds.cloud/messaging v0.0.4
 	go.dfds.cloud/orchestrator v0.1.7
 	go.uber.org/zap v1.27.0
 	k8s.io/api v0.31.0
