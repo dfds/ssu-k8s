@@ -6,7 +6,9 @@ import (
 
 type Config struct {
 	Kubernetes struct {
-		ClusterName string `json:"clusterName"`
+		ClusterName     string `json:"clusterName"`
+		ClusterCa       string `json:"clusterCa"`
+		ClusterEndpoint string `json:"clusterEndpoint"`
 	} `json:"kubernetes"`
 	Git struct {
 		Branch            string `json:"branch"`

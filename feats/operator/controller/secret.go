@@ -105,7 +105,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		Id:           secretObj.Name,
 		ContextId:    nsObj.Labels[misc.LabelContextIdKey],
 		AwsAccountId: nsObj.Labels[misc.LabelAwsAccountKey],
-	}, secretObj.Name)
+	}, nsObj.Name, secretObj)
 	if err != nil {
 		logging.Logger.Error("Failed to reconcile secret", zap.Error(err))
 	}
