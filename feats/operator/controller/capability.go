@@ -14,6 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"go.dfds.cloud/ssu-k8s/core/config"
+	"go.dfds.cloud/ssu-k8s/core/util"
+	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	"net/http"
 	"strings"
@@ -95,7 +97,7 @@ func ReconcileCapabilityDeploymentToken(ctx context.Context, client client.Clien
 		fmt.Println("Parameter found!")
 		currentParameter := *resp.Parameter.Value
 		if !strings.EqualFold(currentParameter, kubeConfig) {
-			fmt.Println("Parameter out of date, updating")
+			util.Logger.Info("Parameter out of date, updating", zap.String("capability", capability.Id))
 			_, err = ssmClient.PutParameter(ctx, &ssm.PutParameterInput{
 				Name:      aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s", conf.Kubernetes.ClusterName)),
 				Value:     aws.String(kubeConfig),
@@ -108,7 +110,7 @@ func ReconcileCapabilityDeploymentToken(ctx context.Context, client client.Clien
 			}
 		}
 	} else {
-		fmt.Println("Parameter not found!")
+		util.Logger.Info("Parameter missing, creating", zap.String("capability", capability.Id))
 		_, err = ssmClient.PutParameter(ctx, &ssm.PutParameterInput{
 			Name:      aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s", conf.Kubernetes.ClusterName)),
 			Value:     aws.String(kubeConfig),
