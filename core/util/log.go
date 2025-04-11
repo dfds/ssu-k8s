@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"go.dfds.cloud/aad-aws-sync/internal/config"
+	"go.dfds.cloud/ssu-k8s/core/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -13,13 +13,13 @@ func InitializeLogger() {
 	conf, _ := config.LoadConfig()
 
 	var logConf zap.Config
-	if conf.Log.Debug {
+	if conf.LogDebug {
 		logConf = zap.NewDevelopmentConfig()
 	} else {
 		logConf = zap.NewProductionConfig()
 	}
 
-	level, err := zapcore.ParseLevel(conf.Log.Level)
+	level, err := zapcore.ParseLevel(conf.LogLevel)
 	if err != nil {
 		fmt.Println(err)
 		level = zapcore.InfoLevel

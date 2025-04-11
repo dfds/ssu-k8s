@@ -5,6 +5,8 @@ import (
 )
 
 type Config struct {
+	LogDebug   bool   `json:"logDebug"`
+	LogLevel   string `json:"logLevel"`
 	Kubernetes struct {
 		ClusterName     string `json:"clusterName"`
 		ClusterCa       string `json:"clusterCa"`
