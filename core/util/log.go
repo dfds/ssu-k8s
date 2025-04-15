@@ -2,24 +2,21 @@ package util
 
 import (
 	"fmt"
-	"go.dfds.cloud/ssu-k8s/core/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 var Logger *zap.Logger
 
-func InitializeLogger() {
-	conf, _ := config.LoadConfig()
-
+func InitializeLogger(debug bool, logLevel string) {
 	var logConf zap.Config
-	if conf.LogDebug {
+	if debug {
 		logConf = zap.NewDevelopmentConfig()
 	} else {
 		logConf = zap.NewProductionConfig()
 	}
 
-	level, err := zapcore.ParseLevel(conf.LogLevel)
+	level, err := zapcore.ParseLevel(logLevel)
 	if err != nil {
 		fmt.Println(err)
 		level = zapcore.InfoLevel

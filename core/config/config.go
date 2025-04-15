@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/kelseyhightower/envconfig"
+	selfserviceapi "go.dfds.cloud/ssu-k8s/core/ssu/selfservice-api"
 )
 
 type Config struct {
@@ -21,6 +22,7 @@ type Config struct {
 		Messaging bool `json:"messaging" default:"true"`
 		Operator  bool `json:"operator" default:"true"`
 	} `json:"enable"`
+	SelfserviceApi selfserviceapi.Config `json:"selfserviceApi"`
 }
 
 const APP_CONF_PREFIX = "SSU_K8S"
