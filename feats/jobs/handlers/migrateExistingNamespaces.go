@@ -67,6 +67,11 @@ func MigrateExistingNamespaces(ctx context.Context) error {
 		for k, v := range ns.Labels {
 			fmt.Printf("  %s: %s\n", k, v)
 		}
+
+		_, err = client.CoreV1().Namespaces().Update(ctx, &ns, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("namespaces count: %d\n", namespacesCount)
