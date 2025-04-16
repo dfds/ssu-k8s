@@ -49,10 +49,11 @@ func AwsContextAccountCreatedHandler(ctx context.Context, event model.HandlerCon
 				ObjectMeta: v1.ObjectMeta{
 					Name: msg.Payload.CapabilityRootId,
 					Labels: map[string]string{
-						"dfds.cloud/capability":  msg.Payload.CapabilityRootId,
-						"dfds.cloud/reconcile":   "true",
-						"dfds.cloud/context-id":  msg.Payload.ContextId,
-						"dfds.cloud/aws-account": msg.Payload.AccountId,
+						"dfds.cloud/capability":              msg.Payload.CapabilityRootId,
+						"dfds.cloud/reconcile":               "true",
+						"dfds.cloud/context-id":              msg.Payload.ContextId,
+						"dfds.cloud/aws-account":             msg.Payload.AccountId,
+						"pod-security.kubernetes.io/enforce": "baseline",
 					},
 				},
 			}, v1.CreateOptions{})
