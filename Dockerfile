@@ -28,5 +28,6 @@ COPY --chown=app:app static/known_hosts /app/.ssh/known_hosts
 COPY --chown=app:app static/gitconfig /app/.ssh/config
 
 COPY --chown=app:app --from=build /app/app /app/app
+COPY --chown=app:app core /app/core
 
 CMD [ "/app/app" ]
