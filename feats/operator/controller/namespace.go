@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"go.dfds.cloud/ssu-k8s/core/git"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/operator/misc"
@@ -54,11 +53,7 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
-	fmt.Println("Reconciling Namespace: " + nsObj.Name)
-	//fmt.Println("labels:")
-	//for k, v := range nsObj.Labels {
-	//	fmt.Printf("  %s: %s\n", k, v)
-	//}
+	//logging.Logger.Debug("Reconciling Namespace: " + nsObj.Name)
 
 	err = ReconcileCapabilityResources(ctx, r.Client, model.Capability{
 		Name: "",

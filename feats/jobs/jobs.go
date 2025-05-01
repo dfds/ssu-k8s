@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.dfds.cloud/orchestrator"
 	"go.dfds.cloud/ssu-k8s/core/logging"
+	"go.dfds.cloud/ssu-k8s/feats/jobs/handlers"
 )
 
 func Init(orc *orchestrator.Orchestrator) {
@@ -13,6 +14,8 @@ func Init(orc *orchestrator.Orchestrator) {
 		logging.Logger.Info("dummy")
 		return nil
 	}), &orchestrator.Schedule{})
+
+	orc.AddJob(configPrefix, orchestrator.NewJob("migrateExistingNamespaces", handlers.MigrateExistingNamespaces), &orchestrator.Schedule{})
 
 	orc.Run()
 }

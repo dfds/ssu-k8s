@@ -76,6 +76,15 @@ func InitOperator(ctx context.Context) {
 		os.Exit(1)
 	}
 
+	if err = (&controller.SecretReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+		Repo:   repo,
+	}).SetupWithManager(mgr); err != nil {
+		logging.Logger.Error("unable to create controller", zap.Error(err), zap.String("controller", "secret"))
+		os.Exit(1)
+	}
+
 	logging.Logger.Info("starting manager")
 	if err := mgr.Start(ctx); err != nil {
 		logging.Logger.Error("problem running manager", zap.Error(err))
