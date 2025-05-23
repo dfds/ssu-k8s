@@ -6,7 +6,8 @@ metadata:
 spec:
   releaseName: capability-base-{{index .Vars "capabilityId"}}
   serviceAccountName: flux
-  driftDetection: enabled
+  driftDetection:
+    mode: enabled
   chart:
     spec:
       chart: configuration/capability-base
