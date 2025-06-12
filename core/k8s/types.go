@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"errors"
-	"fmt"
 	//"github.com/traefik/traefik/v2/pkg/rules"
 	"github.com/traefik/traefik/v2/pkg/rules"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,27 +41,27 @@ type ExtractedRule struct {
 func ExtractHostAndPath(tree *rules.Tree) (*ExtractedRule, error) {
 	info := &ExtractedRule{}
 
-	var walker func(*rules.Tree)
-	walker = func(t *rules.Tree) {
+	var walker func(*rules.Tree, *ExtractedRule)
+	walker = func(t *rules.Tree, inf *ExtractedRule) {
 		if t == nil {
 			return
 		}
 
 		if t.Matcher != "" && t.Matcher != "and" && t.Matcher != "or" {
-			if (t.Matcher == "Host" || t.Matcher == "HostRegexp") && info.Host == "" && len(t.Value) > 0 {
-				info.Host = t.Value[0]
+			if (t.Matcher == "Host" || t.Matcher == "HostRegexp") && inf.Host == "" && len(t.Value) > 0 {
+				inf.Host = t.Value[0]
 			}
 
 			if (t.Matcher == "PathPrefix" || t.Matcher == "Path") && len(t.Value) > 0 {
-				info.PathPrefix = t.Value[0]
+				inf.PathPrefix = t.Value[0]
 			}
 		}
 
-		walker(t.RuleLeft)
-		walker(t.RuleRight)
+		walker(t.RuleLeft, inf)
+		walker(t.RuleRight, inf)
 	}
 
-	walker(tree)
+	walker(tree, info)
 
 	if info.Host == "" {
 		return nil, errors.New("no 'Host' or 'HostRegexp' rule found in the provided tree")
@@ -95,10 +94,6 @@ func (ing *IngressRouteSpecRoute) ParseMatch() (*ExtractedRule, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("  Host: %s\n", extractedRule.Host)
-	fmt.Printf("  Pathprefix: %s\n", extractedRule.PathPrefix)
-
 	return extractedRule, nil
 }
 

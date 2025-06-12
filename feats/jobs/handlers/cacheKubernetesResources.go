@@ -47,11 +47,15 @@ func CacheKubernetesResources(ctx context.Context) error {
 		return err
 	}
 
+	routesWithPathPrefix := 0
+
 	for _, ingr := range ingressroutesDyn.Items {
 		ingressRoute, err := k8s.MapFromUnstructured[k8s.IngressRoute](ingr)
 		if err != nil {
 			return err
 		}
+
+		hasPathPrefix := false
 
 		for _, route := range ingressRoute.Spec.Routes {
 			logging.Logger.Info(route.Match)
@@ -59,12 +63,24 @@ func CacheKubernetesResources(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
+
+			fmt.Printf("  Host: %s\n", extractedRule.Host)
+			fmt.Printf("  Pathprefix: %s\n", extractedRule.PathPrefix)
+
+			if extractedRule.PathPrefix != "" {
+				hasPathPrefix = true
+			}
+		}
+
+		if hasPathPrefix {
+			routesWithPathPrefix = routesWithPathPrefix + 1
 		}
 	}
 
 	logging.Logger.Info(fmt.Sprintf("Deployments: %d", len(deployments.Items)))
 	logging.Logger.Info(fmt.Sprintf("Services: %d", len(services.Items)))
 	logging.Logger.Info(fmt.Sprintf("IngressRoutes: %d", len(ingressroutesDyn.Items)))
+	logging.Logger.Info(fmt.Sprintf("IngressRoutes with PathPrefix: %d", routesWithPathPrefix))
 
 	return nil
 }
