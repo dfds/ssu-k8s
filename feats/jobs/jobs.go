@@ -15,6 +15,8 @@ func Init(orc *orchestrator.Orchestrator) {
 		return nil
 	}), &orchestrator.Schedule{})
 
+	orc.AddJob(configPrefix, orchestrator.NewJob("cacheKubernetesResources", handlers.CacheKubernetesResources), &orchestrator.Schedule{})
+
 	orc.AddJob(configPrefix, orchestrator.NewJob("migrateExistingNamespaces", handlers.MigrateExistingNamespaces), &orchestrator.Schedule{})
 
 	orc.Run()
