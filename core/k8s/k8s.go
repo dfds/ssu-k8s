@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -33,4 +35,14 @@ func GetDynamicK8sClient() (*dynamic.DynamicClient, error) {
 	}
 
 	return client, nil
+}
+
+func MapObject[T any](r interface{}) T {
+	return r.(T)
+}
+
+func MapFromUnstructured[T any](item unstructured.Unstructured) (T, error) {
+	var converted T
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, &converted)
+	return converted, err
 }

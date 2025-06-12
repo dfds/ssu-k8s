@@ -5,38 +5,66 @@ import (
 	"fmt"
 	"go.dfds.cloud/ssu-k8s/core/k8s"
 	"go.dfds.cloud/ssu-k8s/core/logging"
-	v1Apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 )
 
 func CacheKubernetesResources(ctx context.Context) error {
 	logging.Logger.Info("Caching Kubernetes resources for API")
-	client, err := k8s.GetDynamicK8sClient()
+
+	cache := k8s.NewCachedResources()
+
+	client, err := k8s.GetK8sClient()
 	if err != nil {
 		return err
 	}
 
-	resources, err := getK8sResources(client, ctx, "", "deployments", "apps", "v1")
+	dynClient, err := k8s.GetDynamicK8sClient()
 	if err != nil {
 		return err
 	}
 
-	for _, res := range resources.Items {
-		logging.Logger.Info(fmt.Sprintf("%s: %s - %s", res.GetObjectKind().GroupVersionKind().Kind, res.GetNamespace(), res.GetName()))
+	deployments, err := client.AppsV1().Deployments("").List(ctx, v1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	cache.Deployments = deployments
 
-		if res.GetObjectKind().GroupVersionKind().Kind == "Deployment" {
-			deployment, err := mapFromUnstructured[v1Apps.Deployment](res)
+	services, err := client.CoreV1().Services("").List(ctx, v1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	cache.Services = services
+
+	ingressroutesDyn, err := dynClient.Resource(schema.GroupVersionResource{
+		Group:    "traefik.io",
+		Version:  "v1alpha1",
+		Resource: "ingressroutes",
+	}).List(ctx, v1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, ingr := range ingressroutesDyn.Items {
+		ingressRoute, err := k8s.MapFromUnstructured[k8s.IngressRoute](ingr)
+		if err != nil {
+			return err
+		}
+
+		for _, route := range ingressRoute.Spec.Routes {
+			logging.Logger.Info(route.Match)
+			extractedRule, err := route.ParseMatch()
 			if err != nil {
 				return err
 			}
-
-			logging.Logger.Info(fmt.Sprintf("  Replicas: %d", *deployment.Spec.Replicas))
 		}
 	}
+
+	logging.Logger.Info(fmt.Sprintf("Deployments: %d", len(deployments.Items)))
+	logging.Logger.Info(fmt.Sprintf("Services: %d", len(services.Items)))
+	logging.Logger.Info(fmt.Sprintf("IngressRoutes: %d", len(ingressroutesDyn.Items)))
 
 	return nil
 }
@@ -49,10 +77,4 @@ func getK8sResources(client *dynamic.DynamicClient, ctx context.Context, ns stri
 	}).List(ctx, v1.ListOptions{})
 
 	return resources, err
-}
-
-func mapFromUnstructured[T any](item unstructured.Unstructured) (T, error) {
-	var converted T
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, &converted)
-	return converted, err
 }
