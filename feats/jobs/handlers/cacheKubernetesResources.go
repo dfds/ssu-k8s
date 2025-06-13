@@ -47,6 +47,8 @@ func CacheKubernetesResources(ctx context.Context) error {
 		return err
 	}
 
+	ingressRoutes := []k8s.IngressRoute{}
+
 	routesWithPathPrefix := 0
 
 	for _, ingr := range ingressroutesDyn.Items {
@@ -56,6 +58,8 @@ func CacheKubernetesResources(ctx context.Context) error {
 		}
 
 		hasPathPrefix := false
+
+		ingressRoute.PopulateDefaultsIfEmpty()
 
 		for _, route := range ingressRoute.Spec.Routes {
 			logging.Logger.Info(route.Match)
@@ -67,6 +71,12 @@ func CacheKubernetesResources(ctx context.Context) error {
 			fmt.Printf("  Host: %s\n", extractedRule.Host)
 			fmt.Printf("  Pathprefix: %s\n", extractedRule.PathPrefix)
 
+			for _, svc := range route.Services {
+				fmt.Printf("  Namespace: %s\n", svc.Namespace)
+				fmt.Printf("  Service: %s\n", svc.Name)
+				fmt.Printf("  Port: %s\n", svc.GetPort())
+			}
+
 			if extractedRule.PathPrefix != "" {
 				hasPathPrefix = true
 			}
@@ -75,11 +85,13 @@ func CacheKubernetesResources(ctx context.Context) error {
 		if hasPathPrefix {
 			routesWithPathPrefix = routesWithPathPrefix + 1
 		}
+
+		ingressRoutes = append(ingressRoutes, ingressRoute)
 	}
 
 	logging.Logger.Info(fmt.Sprintf("Deployments: %d", len(deployments.Items)))
 	logging.Logger.Info(fmt.Sprintf("Services: %d", len(services.Items)))
-	logging.Logger.Info(fmt.Sprintf("IngressRoutes: %d", len(ingressroutesDyn.Items)))
+	logging.Logger.Info(fmt.Sprintf("IngressRoutes: %d", len(ingressRoutes)))
 	logging.Logger.Info(fmt.Sprintf("IngressRoutes with PathPrefix: %d", routesWithPathPrefix))
 
 	return nil

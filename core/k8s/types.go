@@ -2,6 +2,9 @@ package k8s
 
 import (
 	"errors"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"strconv"
+
 	//"github.com/traefik/traefik/v2/pkg/rules"
 	"github.com/traefik/traefik/v2/pkg/rules"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,6 +34,22 @@ type IngressRouteSpecRoute struct {
 	Kind     string                         `json:"kind"`
 	Match    string                         `json:"match"`
 	Services []IngressRouteSpecRouteService `json:"services"`
+}
+
+func (ing *IngressRoute) PopulateDefaultsIfEmpty() {
+	var routes []IngressRouteSpecRoute
+	for _, route := range ing.Spec.Routes {
+		var svcs []IngressRouteSpecRouteService
+		for _, svc := range route.Services {
+			if svc.Namespace == "" {
+				svc.Namespace = ing.GetNamespace()
+			}
+			svcs = append(svcs, svc)
+		}
+		route.Services = svcs
+		routes = append(routes, route)
+	}
+	ing.Spec.Routes = routes
 }
 
 type ExtractedRule struct {
@@ -98,8 +117,16 @@ func (ing *IngressRouteSpecRoute) ParseMatch() (*ExtractedRule, error) {
 }
 
 type IngressRouteSpecRouteService struct {
-	Kind      string `json:"kind"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	//Port      int64  `json:"port"`
+	Kind      string             `json:"kind"`
+	Name      string             `json:"name"`
+	Namespace string             `json:"namespace"`
+	Port      intstr.IntOrString `json:"port"`
+}
+
+func (ing *IngressRouteSpecRouteService) GetPort() string {
+	if ing.Port.Type == 1 {
+		return ing.Port.StrVal
+	} else {
+		return strconv.Itoa(int(ing.Port.IntVal))
+	}
 }

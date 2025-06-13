@@ -8,6 +8,7 @@ import (
 type CachedResources struct {
 	Deployments            *appsV1.DeploymentList
 	Services               *coreV1.ServiceList
+	IngressRoutes          []IngressRoute
 	DeploymentsByNamespace map[string]*appsV1.DeploymentList
 	ServicesByNamespace    map[string]*coreV1.ServiceList
 }
