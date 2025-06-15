@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/segmentio/kafka-go"
 	"go.dfds.cloud/messaging/kafka/model"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	messagingModel "go.dfds.cloud/ssu-k8s/feats/messaging/model"
+	"go.dfds.cloud/ssu-k8s/feats/messaging/model/events"
 	"go.uber.org/zap"
 	v1Core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -57,6 +60,29 @@ func AwsContextAccountCreatedHandler(ctx context.Context, event model.HandlerCon
 					},
 				},
 			}, v1.CreateOptions{})
+			if err != nil {
+				return err
+			}
+
+			// publish msg
+			payload := model.EnvelopeWithPayload[events.K8sNamespaceCreatedAndAwsArnConnected]{
+				EventName:      "k8s_namespace_created_and_aws_arn_connected",
+				Version:        "1",
+				XCorrelationId: "",
+				XSender:        "ssu-k8s",
+				Payload: events.K8sNamespaceCreatedAndAwsArnConnected{
+					CapabilityId:  msg.Payload.CapabilityId,
+					ContextId:     msg.Payload.ContextId,
+					NamespaceName: msg.Payload.CapabilityRootId,
+				},
+			}
+
+			serialised, err := json.Marshal(payload)
+			if err != nil {
+				return err
+			}
+
+			err = event.Writer("build.selfservice.events.capabilities").WriteMessages(ctx, kafka.Message{Value: serialised})
 			if err != nil {
 				return err
 			}
