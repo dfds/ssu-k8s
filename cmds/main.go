@@ -40,7 +40,8 @@ func main() {
 
 	var msgWg *sync.WaitGroup
 	if conf.Enable.Messaging {
-		msgWg = messaging.Init(manager)
+		_, wg := messaging.Init(manager)
+		msgWg = wg
 	}
 
 	// run

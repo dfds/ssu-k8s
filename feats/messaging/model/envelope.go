@@ -3,8 +3,8 @@ package model
 import "k8s.io/apimachinery/pkg/util/json"
 
 type EnvelopeWithPayload[T any] struct {
-	Type           string `json:"type"`
-	MessageId      string `json:"messageId"`
+	Type           string `json:"type,omitempty"`
+	MessageId      string `json:"messageId,omitempty"`
 	EventName      string `json:"eventName"`
 	Version        string `json:"version"`
 	XCorrelationId string `json:"x-correlationId"`
