@@ -57,6 +57,7 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
+	logger := logging.Logger.With(zap.String("namespace", nsObj.Name))
 	//logging.Logger.Debug("Reconciling Namespace: " + nsObj.Name)
 
 	err = ReconcileCapabilityResources(ctx, r.Client, model.Capability{
@@ -64,13 +65,13 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		Id:   nsObj.Name,
 	}, nsObj.Name, r.Repo)
 	if err != nil {
-		logging.Logger.Error("Failed to reconcile namespace child resources", zap.Error(err))
+		logger.Error("Failed to reconcile namespace child resources", zap.Error(err))
 	}
 
 	// Update labels
 	capabilityMetadata, err := r.SsuApi.GetCapabilityMetadata(nsObj.Labels[misc.LabelCapabilityKey])
 	if err != nil {
-		logging.Logger.Error("Failed to fetch Capability metadata for namespace", zap.Error(err))
+		logger.Error("Failed to fetch Capability metadata for namespace", zap.Error(err))
 		return ctrl.Result{}, nil
 	}
 
@@ -91,7 +92,7 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if labelsUpdated {
 		err = r.Client.Update(ctx, nsObj)
 		if err != nil {
-			logging.Logger.Error("Failed to update namespace", zap.Error(err))
+			logger.Error("Failed to update namespace", zap.Error(err))
 			return ctrl.Result{}, err
 		}
 	}
