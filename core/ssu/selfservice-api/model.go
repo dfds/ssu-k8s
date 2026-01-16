@@ -1,6 +1,7 @@
 package selfservice_api
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 )
@@ -25,6 +26,7 @@ type GetCapabilitiesResponseContextCapability struct {
 	Name        string `json:"name"`
 	RootID      string `json:"rootId"`
 	Description string `json:"description"`
+	Metadata    string `json:"jsonMetadata"`
 	Members     []struct {
 		Email string `json:"email"`
 	} `json:"members"`
@@ -39,6 +41,15 @@ func (g *GetCapabilitiesResponseContextCapability) HasMember(email string) bool 
 	}
 
 	return false
+}
+
+func (g *GetCapabilitiesResponseContextCapability) MetadataAsMap() (map[string]interface{}, error) {
+	var payload map[string]interface{}
+	err := json.Unmarshal([]byte(g.Metadata), &payload)
+	if err != nil {
+		return nil, err
+	}
+	return payload, nil
 }
 
 type GetCapabilitiesResponseContext struct {

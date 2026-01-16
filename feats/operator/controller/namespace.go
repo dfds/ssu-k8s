@@ -2,8 +2,11 @@ package controller
 
 import (
 	"context"
+	"time"
+
 	"go.dfds.cloud/ssu-k8s/core/git"
 	"go.dfds.cloud/ssu-k8s/core/logging"
+	selfservice_api "go.dfds.cloud/ssu-k8s/core/ssu/selfservice-api"
 	"go.dfds.cloud/ssu-k8s/feats/operator/misc"
 	"go.dfds.cloud/ssu-k8s/feats/operator/model"
 	"go.uber.org/zap"
@@ -17,6 +20,7 @@ import (
 
 type NamespaceReconciler struct {
 	Client client.Client
+	SsuApi *selfservice_api.Client
 	Scheme *runtime.Scheme
 	Repo   *git.Repo
 }
@@ -63,7 +67,36 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		logging.Logger.Error("Failed to reconcile namespace child resources", zap.Error(err))
 	}
 
-	return ctrl.Result{}, nil
+	// Update labels
+	capabilityMetadata, err := r.SsuApi.GetCapabilityMetadata(nsObj.Labels[misc.LabelCapabilityKey])
+	if err != nil {
+		logging.Logger.Error("Failed to fetch Capability metadata for namespace", zap.Error(err))
+		return ctrl.Result{}, nil
+	}
+
+	labelsUpdated := false
+	for k, v := range capabilityMetadata {
+		if misc.IsTagAllowed(k) {
+			if previousValue, ok := nsObj.Labels[k]; !ok {
+				labelsUpdated = true
+			} else {
+				if previousValue != v {
+					labelsUpdated = true
+				}
+			}
+			nsObj.Labels[misc.AllowedTags[k]] = v.(string)
+		}
+	}
+
+	if labelsUpdated {
+		err = r.Client.Update(ctx, nsObj)
+		if err != nil {
+			logging.Logger.Error("Failed to update namespace", zap.Error(err))
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{RequeueAfter: time.Minute * 10}, nil
 }
 
 func (r *NamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {

@@ -2,18 +2,20 @@ package operator
 
 import (
 	"context"
+	"log"
+	"os"
+
 	"github.com/go-logr/zapr"
 	"go.dfds.cloud/ssu-k8s/core/config"
 	"go.dfds.cloud/ssu-k8s/core/git"
 	"go.dfds.cloud/ssu-k8s/core/logging"
+	selfserviceapi "go.dfds.cloud/ssu-k8s/core/ssu/selfservice-api"
 	"go.dfds.cloud/ssu-k8s/feats/operator/controller"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"log"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
@@ -32,6 +34,8 @@ func InitOperator(ctx context.Context) {
 		logging.Logger.Fatal("Failed to load config", zap.Error(err))
 	}
 
+	ssApi := selfserviceapi.NewClient(conf.SelfserviceApi)
+
 	repo, err := git.LoadRepo(git.Config{
 		RemoteRepoUri:     conf.Git.RemoteRepoURI,
 		TemporaryRepoPath: conf.Git.TemporaryRepoPath,
@@ -43,8 +47,13 @@ func InitOperator(ctx context.Context) {
 		log.Fatal(err)
 	}
 
+	//syncInterval := time.Minute * 10
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
+		//Cache: cache.Options{
+		//	SyncPeriod: &syncInterval,
+		//},
 		//Metrics:          metricsServerOptions,
 		Metrics: server.Options{
 			BindAddress: "0", // disables metrics for now
@@ -69,6 +78,7 @@ func InitOperator(ctx context.Context) {
 
 	if err = (&controller.NamespaceReconciler{
 		Client: mgr.GetClient(),
+		SsuApi: ssApi,
 		Scheme: mgr.GetScheme(),
 		Repo:   repo,
 	}).SetupWithManager(mgr); err != nil {
