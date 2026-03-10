@@ -1,13 +1,14 @@
 package messaging
 
 import (
+	"sync"
+
 	"go.dfds.cloud/bootstrap"
 	"go.dfds.cloud/messaging"
 	"go.dfds.cloud/messaging/kafka/model"
 	"go.dfds.cloud/ssu-k8s/core/logging"
 	"go.dfds.cloud/ssu-k8s/feats/messaging/handlers"
 	"go.uber.org/zap"
-	"sync"
 )
 
 func Init(manager *bootstrap.Manager) (*messaging.Messaging, *sync.WaitGroup) {
@@ -30,6 +31,7 @@ func Init(manager *bootstrap.Manager) (*messaging.Messaging, *sync.WaitGroup) {
 func configure(msg *messaging.Messaging) {
 	auditConsumer := msg.NewConsumer("build.selfservice.events.capabilities", "cloudengineering.ssu-k8s")
 	auditConsumer.Register("aws_context_account_created", handlers.AwsContextAccountCreatedHandler)
+	auditConsumer.Register("capability_metadata_updated", handlers.CapabilityMetadataUpdatedHandler)
 
 	handlerContext := &model.HandlerContext{
 		Writer: msg.NewPublisher().Writer,
