@@ -9,6 +9,7 @@ var AllowedTags = map[string]string{
 	"dfds.service.criticality":  fmt.Sprintf("%s/service-criticality", labelPrefix),
 	"dfds.data.classification":  fmt.Sprintf("%s/data-classification", labelPrefix),
 	"dfds.env":                  fmt.Sprintf("%s/env", labelPrefix),
+	"dfds.businessCapability":   fmt.Sprintf("%s/business-capability", labelPrefix),
 }
 
 func IsTagAllowed(tag string) bool {
