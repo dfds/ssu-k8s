@@ -86,6 +86,11 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				}
 			}
 			nsObj.Labels[misc.AllowedTags[k]] = v.(string)
+
+			// Also set deprecated tags for backwards compatibility
+			if deprecatedLabel, ok := misc.DeprecatedTags[k]; ok {
+				nsObj.Labels[deprecatedLabel] = v.(string)
+			}
 		}
 	}
 
