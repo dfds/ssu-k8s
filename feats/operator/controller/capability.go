@@ -67,7 +67,7 @@ func ReconcileCapabilityDeploymentToken(ctx context.Context, client client.Clien
 
 	ssmClient := ssm.NewFromConfig(cfg)
 	resp, err := ssmClient.GetParameter(ctx, &ssm.GetParameterInput{
-		Name:           aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s", conf.Kubernetes.ClusterName)),
+		Name:           aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s-%s", conf.Kubernetes.ClusterName, ns)),
 		WithDecryption: aws.Bool(true),
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func ReconcileCapabilityDeploymentToken(ctx context.Context, client client.Clien
 		if !strings.EqualFold(currentParameter, kubeConfig) {
 			logging.Logger.Info("Parameter out of date, updating", zap.String("capability", capability.Id))
 			_, err = ssmClient.PutParameter(ctx, &ssm.PutParameterInput{
-				Name:      aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s", conf.Kubernetes.ClusterName)),
+				Name:      aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s-%s", conf.Kubernetes.ClusterName, ns)),
 				Value:     aws.String(kubeConfig),
 				DataType:  aws.String("text"),
 				Overwrite: aws.Bool(true),
@@ -111,7 +111,7 @@ func ReconcileCapabilityDeploymentToken(ctx context.Context, client client.Clien
 	} else {
 		logging.Logger.Info("Parameter missing, creating", zap.String("capability", capability.Id))
 		_, err = ssmClient.PutParameter(ctx, &ssm.PutParameterInput{
-			Name:      aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s", conf.Kubernetes.ClusterName)),
+			Name:      aws.String(fmt.Sprintf("/managed/ssu/k8s-deployment-%s-%s", conf.Kubernetes.ClusterName, ns)),
 			Value:     aws.String(kubeConfig),
 			DataType:  aws.String("text"),
 			Overwrite: aws.Bool(true),

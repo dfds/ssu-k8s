@@ -17,40 +17,55 @@ import (
 	"k8s.io/utils/env"
 )
 
-type AWSContextAccountCreated struct {
+type K8sNamespaceRequested struct {
 	AccountId        string `json:"accountId"`
 	CapabilityId     string `json:"capabilityId"`
-	CapabilityName   string `json:"capabilityName"`
 	CapabilityRootId string `json:"capabilityRootId"`
 	ContextId        string `json:"contextId"`
-	ContextName      string `json:"contextName"`
-	RoleArn          string `json:"roleArn"`
-	RoleEmail        string `json:"roleEmail"`
+	NamespaceName    string `json:"namespaceName"`
 }
 
-func AwsContextAccountCreatedHandler(ctx context.Context, event model.HandlerContext) error {
-	logging.Logger.Info("aws_context_account_created received")
+func K8sNamespaceRequestedHandler(ctx context.Context, event model.HandlerContext) error {
+	logging.Logger.Info("k8s_namespace_requested received")
 
-	msg, err := messagingModel.SerialiseToEnvelopeWithPayload[AWSContextAccountCreated](event.Msg)
+	msg, err := messagingModel.SerialiseToEnvelopeWithPayload[K8sNamespaceRequested](event.Msg)
 	if err != nil {
 		return err
 	}
 
-	logger := logging.Logger.With(zap.String("handler", "aws_context_account_created"), zap.String("capability_id", msg.Payload.CapabilityId))
+	logger := logging.Logger.With(zap.String("handler", "k8s_namespace_requested"), zap.String("capability_id", msg.Payload.CapabilityId))
+
+	const maxNamespaceLength = 63
+	const maxNamespaceNameLength = 25
+	const maxRootIdLength = maxNamespaceLength - maxNamespaceNameLength - 1 // -1 for hyphen
+	const keepRootIdSuffix = 5
+
+	namespacePart := msg.Payload.NamespaceName
+	if len(namespacePart) > maxNamespaceNameLength {
+		namespacePart = namespacePart[:maxNamespaceNameLength]
+	}
+
+	rootIdPart := msg.Payload.CapabilityRootId
+	if len(rootIdPart) > maxRootIdLength {
+		truncateAt := maxRootIdLength - keepRootIdSuffix
+		rootIdPart = rootIdPart[:truncateAt] + rootIdPart[len(rootIdPart)-keepRootIdSuffix:]
+	}
+
+	namespaceName := rootIdPart + "-" + namespacePart
 
 	client, err := getK8sClient()
 	if err != nil {
 		return err
 	}
 
-	ns, err := client.CoreV1().Namespaces().Get(ctx, msg.Payload.CapabilityRootId, v1.GetOptions{})
+	ns, err := client.CoreV1().Namespaces().Get(ctx, namespaceName, v1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			logger.Debug("Namespace missing, creating it")
 
 			_, err := client.CoreV1().Namespaces().Create(ctx, &v1Core.Namespace{
 				ObjectMeta: v1.ObjectMeta{
-					Name: msg.Payload.CapabilityRootId,
+					Name: namespaceName,
 					Labels: map[string]string{
 						"dfds.cloud/capability":              msg.Payload.CapabilityRootId,
 						"dfds.cloud/reconcile":               "true",
@@ -64,7 +79,6 @@ func AwsContextAccountCreatedHandler(ctx context.Context, event model.HandlerCon
 				return err
 			}
 
-			// publish msg
 			payload := model.EnvelopeWithPayload[events.K8sNamespaceCreatedAndAwsArnConnected]{
 				EventName:      "k8s_namespace_created_and_aws_arn_connected",
 				Version:        "1",
@@ -73,7 +87,7 @@ func AwsContextAccountCreatedHandler(ctx context.Context, event model.HandlerCon
 				Payload: events.K8sNamespaceCreatedAndAwsArnConnected{
 					CapabilityId:  msg.Payload.CapabilityId,
 					ContextId:     msg.Payload.ContextId,
-					NamespaceName: msg.Payload.CapabilityRootId,
+					NamespaceName: namespaceName,
 				},
 			}
 
