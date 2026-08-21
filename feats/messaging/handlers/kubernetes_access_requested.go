@@ -17,7 +17,7 @@ import (
 	"k8s.io/utils/env"
 )
 
-type K8sNamespaceRequested struct {
+type KubernetesAccessRequested struct {
 	AccountId        string `json:"accountId"`
 	CapabilityId     string `json:"capabilityId"`
 	CapabilityRootId string `json:"capabilityRootId"`
@@ -25,15 +25,15 @@ type K8sNamespaceRequested struct {
 	NamespaceName    string `json:"namespaceName"`
 }
 
-func K8sNamespaceRequestedHandler(ctx context.Context, event model.HandlerContext) error {
-	logging.Logger.Info("k8s_namespace_requested received")
+func KubernetesAccessRequestedHandler(ctx context.Context, event model.HandlerContext) error {
+	logging.Logger.Info("kubernetes_access_requested received")
 
-	msg, err := messagingModel.SerialiseToEnvelopeWithPayload[K8sNamespaceRequested](event.Msg)
+	msg, err := messagingModel.SerialiseToEnvelopeWithPayload[KubernetesAccessRequested](event.Msg)
 	if err != nil {
 		return err
 	}
 
-	logger := logging.Logger.With(zap.String("handler", "k8s_namespace_requested"), zap.String("capability_id", msg.Payload.CapabilityId))
+	logger := logging.Logger.With(zap.String("handler", "kubernetes_access_requested"), zap.String("capability_id", msg.Payload.CapabilityId))
 
 	const maxNamespaceLength = 63
 	const maxNamespaceNameLength = 25
