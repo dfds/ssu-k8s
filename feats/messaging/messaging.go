@@ -29,7 +29,7 @@ func Init(manager *bootstrap.Manager) (*messaging.Messaging, *sync.WaitGroup) {
 
 func configure(msg *messaging.Messaging) {
 	auditConsumer := msg.NewConsumer("build.selfservice.events.capabilities", "cloudengineering.ssu-k8s")
-	auditConsumer.Register("aws_context_account_created", handlers.AwsContextAccountCreatedHandler)
+	auditConsumer.Register("kubernetes_access_requested", handlers.KubernetesAccessRequestedHandler)
 
 	handlerContext := &model.HandlerContext{
 		Writer: msg.NewPublisher().Writer,
